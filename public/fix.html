@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>أداة إصلاح مقاضي</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{background:#0A1520;color:#E8F0FE;padding:20px;direction:rtl;min-height:100vh}
+.box{max-width:500px;margin:20px auto;background:#111E2C;border-radius:16px;padding:24px;border:1px solid #1A2B3C}
+h1{color:#C8960C;font-size:22px;margin-bottom:14px}
+p{color:#8A9BAE;font-size:14px;line-height:1.7;margin-bottom:14px}
+button{width:100%;padding:14px;border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:bold;cursor:pointer;margin-top:10px;font-family:Arial,sans-serif}
+.btn-fix{background:#38A169}
+.btn-clear{background:#E53E3E}
+.btn-back{background:#1A6B8A}
+.result{margin-top:18px;padding:14px;border-radius:10px;font-size:14px;white-space:pre-wrap;line-height:1.7}
+.ok{background:#1B4332;color:#fff}
+.err{background:#5C1A1A;color:#FED7D7}
+</style>
+</head>
+<body>
+<div class="box">
+<h1>🛠️ أداة إصلاح مقاضي</h1>
+<p>هذه الأداة تُصلح مشكلة تشارك المنازل في نفس الـ ID. ستفحص بياناتك وتُعطي ID فريد لكل منزل بدون فقدان أي بيانات.</p>
+<button class="btn-fix" onclick="fixIds()">🔧 فحص وإصلاح المنازل</button>
+<button class="btn-clear" onclick="clearAll()">🗑️ مسح كل البيانات (إعادة بدء)</button>
+<button class="btn-back" onclick="location.href='/'">↩ العودة للتطبيق</button>
+<div id="result"></div>
+</div>
+<script>
+function uid(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36)}
+function fixIds(){
+  var r=document.getElementById('result');
+  try{
+    var raw=localStorage.getItem('houses_v10');
+    if(!raw){r.className='result err';r.textContent='❌ لا توجد بيانات. افتح التطبيق أولاً.';return;}
+    var houses=JSON.parse(raw);
+    var seen=new Set();var c=0;
+    var fixed=houses.map(function(h){
+      if(!seen.has(h.id)){seen.add(h.id);return h;}
+      c++;return Object.assign({},h,{id:uid()});
+    });
+    localStorage.setItem('houses_v10',JSON.stringify(fixed));
+    var msg=c===0?'✅ المنازل سليمة. لا توجد IDs مكررة.\n\nعدد المنازل: '+houses.length:'✅ تم الإصلاح!\n\nعدد المنازل: '+fixed.length+'\nتم إصلاح '+c+' منزل\n\n';
+    msg+='\n\nالمنازل:\n';
+    fixed.forEach(function(h){msg+='• '+h.icon+' '+h.name+'\n';});
+    msg+='\nاضغط "العودة للتطبيق" الآن.';
+    r.className='result ok';r.textContent=msg;
+  }catch(e){r.className='result err';r.textContent='❌ خطأ: '+e.message;}
+}
+function clearAll(){
+  if(!confirm('هل أنت متأكد؟ ستُحذف جميع البيانات.'))return;
+  ['hp_v10','houses_v10','lists_v10','saved_v10','orders_v10','drafts_v10','catalog_v10','budgets_v10','m_v10'].forEach(function(k){localStorage.removeItem(k);});
+  document.getElementById('result').className='result ok';
+  document.getElementById('result').textContent='✅ تم مسح البيانات. ارجع للتطبيق وأعد تحميله.';
+}
+</script>
+</body>
+</html>
